@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Canteen Token System</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#243047}
+header{background:#173b57;color:white;text-align:center;padding:24px 12px}
+header h1{margin:0 0 8px;font-size:27px}
+nav{background:#245675;padding:12px;text-align:center}
+nav a{color:white;text-decoration:none;margin:8px;display:inline-block}
+main{max-width:900px;margin:20px auto;padding:12px}
+section{background:white;padding:18px;margin-bottom:18px;border-radius:12px;box-shadow:0 3px 12px #0001}
+h2{color:#173b57}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px}
+.food{background:#eef6fa;padding:14px;border-radius:10px;text-align:center}
+.food .emoji{font-size:35px}
+.food h3{margin:8px 0}
+button,select{padding:10px;border:0;border-radius:7px;margin:4px;font-size:14px}
+button{background:#187b70;color:white;cursor:pointer}
+.secondary{background:#245675}
+.danger{background:#c0392b}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{flex:1;min-width:100px;background:#e5f2f7;padding:12px;border-radius:9px;text-align:center}
+.stat strong{display:block;font-size:25px;margin-top:8px}
+li{background:#f0f5f8;margin:7px 0;padding:10px;border-radius:7px;overflow-wrap:anywhere}
+input{padding:10px;width:100%;border:1px solid #ccd5df;border-radius:7px;margin:6px 0}
+footer{text-align:center;background:#173b57;color:white;padding:15px}
+.small{color:#617080;font-size:14px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🍔 Smart Canteen</h1>
+<p>Token Management System Using Stack and Queue</p>
+</header>
+
+<nav>
+<a href="#home">Home</a>
+<a href="#menu">Food Menu</a>
+<a href="#orders">Orders</a>
+<a href="#queue">Queue</a>
+<a href="#stack">Stack</a>
+</nav>
+
+<main>
+<section id="home">
+<h2>Welcome to Smart Canteen!</h2>
+<p>Order your favourite food and get your token.</p>
+<div class="stats">
+<div class="stat">Total Orders<strong id="total">0</strong></div>
+<div class="stat">Waiting<strong id="waiting">0</strong></div>
+<div class="stat">Completed<strong id="completed">0</strong></div>
+</div>
+</section>
+
+<section id="menu">
+<h2>🍽️ Food Menu</h2>
+<div class="menu">
+<div class="food">
+<div class="emoji">🥪</div><h3>Sandwich</h3><p>₹40</p>
+<button onclick="placeOrder('Sandwich',40)">Order Now</button>
+</div>
+<div class="food">
+<div class="emoji">🍕</div><h3>Pizza</h3><p>₹80</p>
+<button onclick="placeOrder('Pizza',80)">Order Now</button>
+</div>
+<div class="food">
+<div class="emoji">🍔</div><h3>Burger</h3><p>₹60</p>
+<button onclick="placeOrder('Burger',60)">Order Now</button>
+</div>
+<div class="food">
+<div class="emoji">🥟</div><h3>Samosa</h3><p>₹15</p>
+<button onclick="placeOrder('Samosa',15)">Order Now</button>
+</div>
+<div class="food">
+<div class="emoji">☕</div><h3>Tea</h3><p>₹10</p>
+<button onclick="placeOrder('Tea',10)">Order Now</button>
+</div>
+<div class="food">
+<div class="emoji">🥤</div><h3>Juice</h3><p>₹30</p>
+<button onclick="placeOrder('Juice',30)">Order Now</button>
+</div>
+</div>
+</section>
+
+<section id="orders">
+<h2>🎟️ Place an Order</h2>
+<label for="customer">Customer Name</label>
+<input id="customer" placeholder="Enter your name">
+<label for="foodSelect">Choose Food</label>
+<select id="foodSelect" style="width:100%">
+<option value="Sandwich|40">Sandwich - ₹40</option>
+<option value="Pizza|80">Pizza - ₹80</option>
+<option value="Burger|60">Burger - ₹60</option>
+<option value="Samosa|15">Samosa - ₹15</option>
+<option value="Tea|10">Tea - ₹10</option>
+<option value="Juice|30">Juice - ₹30</option>
+</select>
+<button onclick="orderSelected()">Generate Token</button>
+<p id="message" aria-live="polite"></p>
+<h3>📋 All Orders</h3>
+<ul id="orderList"><li>No orders yet.</li></ul>
+</section>
+
+<section id="queue">
+<h2>🕒 Order Queue (FIFO)</h2>
+<p class="small">First In, First Out — पहिली आलेली ऑर्डर आधी पूर्ण होते.</p>
+<button onclick="completeOrder()">Complete Next Order</button>
+<ul id="queueList"><li>Queue is empty.</li></ul>
+</section>
+
+<section id="stack">
+<h2>📚 Action History Stack (LIFO)</h2>
+<p class="small">Last In, First Out — शेवटची नोंद सर्वात आधी दिसते.</p>
+<button class="secondary" onclick="undoAction()">Undo Last Action</button>
+<ul id="stackList"><li>No history yet.</li></ul>
+</section>
+</main>
+
+<footer>
+<p>Smart Canteen Token System | DSA Mini Project</p>
+<p>Using Stack and Queue</p>
+</footer>
+
+<script>
+let orders=[];
+let queue=[];
+let stack=[];
+let nextToken=1;
+let completed=0;
+
+function saveAction(text){
+ stack.push(text);
+}
+
+function placeOrder(food,price){
+ const customer=document.getElementById('customer').value.trim();
+ if(!customer){
+  document.getElementById('message').textContent='Please enter your name first.';
+  document.getElementById('customer').focus();
+  return;
+ }
+ const order={
+  token:nextToken++,
+  customer:customer,
+  food:food,
+  price:price,
+  status:'Waiting'
+ };
+ orders.push(order);
+ queue.push(order);
+ saveAction('New order: Token #'+order.token+' - '+food);
+ document.getElementById('message').textContent=
+  'Order placed! Your token number is #'+order.token;
+ render();
+}
+
+function orderSelected(){
+ const parts=document.getElementById('foodSelect').value.split('|');
+ placeOrder(parts[0],Number(parts[1]));
+}
+
+function completeOrder(){
+ if(queue.length===0){
+  alert('No waiting orders!');
+  return;
+ }
+ const order=queue.shift();
+ order.status='Completed';
+ completed++;
+ saveAction('Completed token #'+order.token+' - '+order.food);
+ document.getElementById('message').textContent=
+  'Token #'+order.token+' completed successfully!';
+ render();
+}
+
+function undoAction(){
+ if(stack.length===0){
+  alert('No action history!');
+  return;
+ }
+ const last=stack.pop();
+ alert('Last history entry removed:\n'+last+
+ '\n\nNote: This removes the history entry only; it does not undo the order.');
+ render();
+}
+
+function render(){
+ document.getElementById('total').textContent=orders.length;
+ document.getElementById('waiting').textContent=queue.length;
+ document.getElementById('completed').textContent=completed;
+
+ const orderList=document.getElementById('orderList');
+ orderList.innerHTML='';
+ if(!orders.length){
+  orderList.innerHTML='<li>No orders yet.</li>';
+ }else{
+  orders.forEach(o=>{
+   const li=document.createElement('li');
+   li.textContent='Token #'+o.token+' | '+o.customer+' | '+
+    o.food+' | ₹'+o.price+' | '+o.status;
+   orderList.appendChild(li);
+  });
+ }
+
+ const queueList=document.getElementById('queueList');
+ queueList.innerHTML='';
+ if(!queue.length){
+  queueList.innerHTML='<li>Queue is empty.</li>';
+ }else{
+  queue.forEach(o=>{
+   const li=document.createElement('li');
+   li.textContent='Token #'+o.token+' — '+o.food+
+    ' | '+o.customer+' | ₹'+o.price;
+   queueList.appendChild(li);
+  });
+ }
+
+ const stackList=document.getElementById('stackList');
+ stackList.innerHTML='';
+ if(!stack.length){
+  stackList.innerHTML='<li>No history yet.</li>';
+ }else{
+  stack.slice().reverse().forEach((item,i)=>{
+   const li=document.createElement('li');
+   li.textContent=(i+1)+'. '+item;
+   stackList.appendChild(li);
+  });
+ }
+}
+
+render();
+</script>
+</body>
+</html>
